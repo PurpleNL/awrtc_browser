@@ -11,6 +11,11 @@
     "build": "webpack && tsc -p ./src/awrtc",
     "clean": "shx rm -rf ./build/awrtc ./build/bundle"
   },
+  "files": [
+    "build",
+    "src"
+  ],
+  "main": "build/bundle/awrtc.js",
   "devDependencies": {
     "@types/jasmine": "^2.8.9",
     "jasmine": "^2.4.1",
