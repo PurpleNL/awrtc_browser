@@ -50,6 +50,14 @@ export class MediaConfig {
     public set Video(value: boolean) {
         this.mVideo = value;
     }
+
+    private mVideoDeviceId : string = "";
+    public get VideoDeviceId(): string {
+        return this.mVideoDeviceId;
+    }
+    public set VideoDeviceId(value: string) {
+        this.mVideoDeviceId = value;
+    }
     
 
     private mVideoDeviceName : string = "";

@@ -140,7 +140,7 @@ export class BrowserMediaNetwork extends WebRtcNetwork implements IMediaNetwork 
             //user requested specific device? get it now to properly add it to the
             //constraints alter
             let deviceId:string = null;
-            if(config.Video && config.VideoDeviceName && config.VideoDeviceName !== "")
+            if(config.Video && config.VideoDeviceName && config.VideoDeviceName !== "" && !config.VideoDeviceId)
             {
                 deviceId = DeviceApi.GetDeviceId(config.VideoDeviceName);
                 SLog.L("using device " + config.VideoDeviceName);
@@ -152,6 +152,12 @@ export class BrowserMediaNetwork extends WebRtcNetwork implements IMediaNetwork 
                     SLog.LE("Failed to find deviceId for label " + config.VideoDeviceName);
                 }
             }
+
+            if (config.Video && config.VideoDeviceId && config.VideoDeviceId !== "") {
+                SLog.L("using device " + config.VideoDeviceId);
+                deviceId = config.VideoDeviceId;
+            }
+
             //watch out: unity changed behaviour and will now
             //give 0 / 1 instead of false/true
             //using === won't work
