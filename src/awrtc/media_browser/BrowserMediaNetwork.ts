@@ -187,7 +187,7 @@ export class BrowserMediaNetwork extends WebRtcNetwork implements IMediaNetwork 
             }
 
 
-            constraints.video = video;
+            constraints.video = config.Video;
 
             SLog.L("calling GetUserMedia. Media constraints: " + JSON.stringify(constraints));
             let promise = navigator.mediaDevices.getUserMedia(constraints);
