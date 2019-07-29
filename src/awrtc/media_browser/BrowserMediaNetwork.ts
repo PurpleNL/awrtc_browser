@@ -38,25 +38,25 @@ import { BrowserMediaStream } from "./BrowserMediaStream";
 import { DeviceApi } from "./DeviceApi";
 
 
-/**Avoid using this class directly whenever possible. Use BrowserWebRtcCall instead. 
+/**Avoid using this class directly whenever possible. Use BrowserWebRtcCall instead.
  * BrowserMediaNetwork might be subject to frequent changes to keep up with changes
- * in all other platforms.  
- * 
+ * in all other platforms.
+ *
  * IMediaNetwork implementation for the browser. The class is mostly identical with the
  * C# version. Main goal is to have an interface that can easily be wrapped to other
  * programming languages and gives access to basic WebRTC features such as receiving
- * and sending audio and video + signaling via websockets. 
- * 
- * BrowserMediaNetwork can be used to stream a local audio and video track to a group of 
+ * and sending audio and video + signaling via websockets.
+ *
+ * BrowserMediaNetwork can be used to stream a local audio and video track to a group of
  * multiple peers and receive remote tracks. The handling of the peers itself
  * remains the same as WebRtcNetwork.
  * Local tracks are created after calling Configure. This will request access from the
  * user. After the user allowed access GetConfigurationState will return Configured.
  * Every incoming and outgoing peer that is established after this will receive
- * the local audio and video track. 
+ * the local audio and video track.
  * So far Configure can only be called once before any peers are connected.
- * 
- * 
+ *
+ *
  */
 export class BrowserMediaNetwork extends WebRtcNetwork implements IMediaNetwork {
 
@@ -78,9 +78,9 @@ export class BrowserMediaNetwork extends WebRtcNetwork implements IMediaNetwork 
 
 
     /**Triggers the creation of a local audio and video track. After this
-     * call the user might get a request to allow access to the requested 
+     * call the user might get a request to allow access to the requested
      * devices.
-     * 
+     *
      * @param config Detail configuration for audio/video devices.
      */
     public Configure(config: MediaConfig): void {
@@ -95,7 +95,7 @@ export class BrowserMediaNetwork extends WebRtcNetwork implements IMediaNetwork 
             //ugly part starts -> call get user media data (no typescript support)
             //different browsers have different calls...
 
-            //check  getSupportedConstraints()??? 
+            //check  getSupportedConstraints()???
             //see https://w3c.github.io/mediacapture-main/getusermedia.html#constrainable-interface
 
             //set default ideal to very common low 320x240 to avoid overloading weak computers
@@ -104,21 +104,21 @@ export class BrowserMediaNetwork extends WebRtcNetwork implements IMediaNetwork 
             } as any;
 
 
-            
+
             let width = {} as any;
             let height = {} as any;
             let video = {} as any;
             let fps = {} as any;
-            
+
             if (config.MinWidth != -1)
                 width.min = config.MinWidth;
-    
+
             if (config.MaxWidth != -1)
                 width.max = config.MaxWidth;
-            
+
             if (config.IdealWidth != -1)
                 width.ideal = config.IdealWidth;
-            
+
             if (config.MinHeight != -1)
                 height.min = config.MinHeight;
 
@@ -127,15 +127,15 @@ export class BrowserMediaNetwork extends WebRtcNetwork implements IMediaNetwork 
 
             if (config.IdealHeight != -1)
                 height.ideal = config.IdealHeight;
-            
-            
+
+
             if (config.MinFps != -1)
                 fps.min = config.MinFps;
             if (config.MaxFps != -1)
                 fps.max = config.MaxFps;
             if (config.IdealFps != -1)
                 fps.ideal = config.IdealFps;
-                
+
 
             //user requested specific device? get it now to properly add it to the
             //constraints alter
@@ -158,36 +158,42 @@ export class BrowserMediaNetwork extends WebRtcNetwork implements IMediaNetwork 
                 deviceId = config.VideoDeviceId;
             }
 
-            //watch out: unity changed behaviour and will now
-            //give 0 / 1 instead of false/true
-            //using === won't work
-            if(config.Video == false)
-            {
-                //video is off
-                video = false;
-            }else {
-                if(Object.keys(width).length > 0){
-                    video.width = width;
+            if (config.VideoHasConstraints) {
+                //configuration already includes video constraints,
+                //pass them directly to the browser
+                constraints.video = config.Video;
+            } else {
+                //we got just a flag to enable/disable video,
+                //generate constraints manually
+                //watch out: unity changed behaviour and will now
+                //give 0 / 1 instead of false/true
+                //using === won't work
+                if (config.Video == false) {
+                    //video is off
+                    video = false;
+                } else {
+                    if(Object.keys(width).length > 0){
+                        video.width = width;
+                    }
+                    if(Object.keys(height).length > 0){
+                        video.height = height;
+                    }
+                    if(Object.keys(fps).length > 0){
+                        video.frameRate = fps;
+                    }
+                    if(deviceId !== null){
+                        video.deviceId = {"exact":deviceId};
+                    }
+
+                    //if we didn't add anything we need to set it to true
+                    //at least (I assume?)
+                    if(Object.keys(video).length == 0){
+                        video = true;
+                    }
                 }
-                if(Object.keys(height).length > 0){
-                    video.height = height;
-                }
-                if(Object.keys(fps).length > 0){
-                    video.frameRate = fps;
-                }
-                if(deviceId !== null){
-                    video.deviceId = {"exact":deviceId};
-                }
-                
-                //if we didn't add anything we need to set it to true
-                //at least (I assume?)
-                if(Object.keys(video).length == 0){
-                    video = true;
-                }
+
+                constraints.video = video;
             }
-
-
-            constraints.video = config.Video;
 
             SLog.L("calling GetUserMedia. Media constraints: " + JSON.stringify(constraints));
             let promise = navigator.mediaDevices.getUserMedia(constraints);
@@ -196,7 +202,7 @@ export class BrowserMediaNetwork extends WebRtcNetwork implements IMediaNetwork 
                     //totally unrelated -> user gave access to devices. use this
                     //to get the proper names for our DeviceApi
                     DeviceApi.Update();
-                
+
                     //call worked -> setup a frame buffer that deals with the rest
                     this.mLocalStream = new BrowserMediaStream(stream as MediaStream);
                     this.mLocalStream.InternalStreamAdded = (stream)=>{
@@ -219,11 +225,11 @@ export class BrowserMediaNetwork extends WebRtcNetwork implements IMediaNetwork 
         }
     }
 
-    
-    
+
+
     /**Call this every time a new frame is shown to the user in realtime
      * applications.
-     * 
+     *
      */
     public Update(): void {
         super.Update();
@@ -243,10 +249,10 @@ export class BrowserMediaNetwork extends WebRtcNetwork implements IMediaNetwork 
     }
     /**
      * Call this every frame after interacting with this instance.
-     * 
+     *
      * This call might flush buffered messages in the future and clear
      * events that the user didn't process to avoid buffer overflows.
-     * 
+     *
      */
     public Flush():void{
         super.Flush();
@@ -255,7 +261,7 @@ export class BrowserMediaNetwork extends WebRtcNetwork implements IMediaNetwork 
 
     /**Poll this after Configure is called to get the result.
      * Won't change after state is Configured or Failed.
-     * 
+     *
      */
     public GetConfigurationState(): MediaConfigurationState {
         return this.mConfigurationState;
@@ -263,17 +269,17 @@ export class BrowserMediaNetwork extends WebRtcNetwork implements IMediaNetwork 
 
     /**Returns the error message if the configure process failed.
      * This usally either happens because the user refused access
-     * or no device fulfills the configuration given 
+     * or no device fulfills the configuration given
      * (e.g. device doesn't support the given resolution)
-     * 
+     *
      */
     public GetConfigurationError(): string {
         return this.mConfigurationError;
     }
 
     /**Resets the configuration state to allow multiple attempts
-     * to call Configure. 
-     * 
+     * to call Configure.
+     *
      */
     public ResetConfiguration(): void {
         this.mConfigurationState = MediaConfigurationState.NoConfiguration;
@@ -292,8 +298,8 @@ export class BrowserMediaNetwork extends WebRtcNetwork implements IMediaNetwork 
     /**Allows to peek at the current frame.
      * Added to allow the emscripten C / C# side to allocate memory before
      * actually getting the frame.
-     * 
-     * @param id 
+     *
+     * @param id
      */
     public PeekFrame(id: ConnectionId): IFrameData {
 
@@ -335,8 +341,8 @@ export class BrowserMediaNetwork extends WebRtcNetwork implements IMediaNetwork 
     }
 
     /**
-     * Remote audio control for each peer. 
-     * 
+     * Remote audio control for each peer.
+     *
      * @param volume 0 - mute and 1 - max volume
      * @param id peer id
      */
@@ -349,9 +355,9 @@ export class BrowserMediaNetwork extends WebRtcNetwork implements IMediaNetwork 
         }
     }
     /** Allows to check if a specific peer has a remote
-     * audio track attached. 
-     * 
-     * @param id 
+     * audio track attached.
+     *
+     * @param id
      */
     public HasAudioTrack(id: ConnectionId): boolean {
         let peer = this.IdToConnection[id.id] as MediaPeer;
@@ -361,9 +367,9 @@ export class BrowserMediaNetwork extends WebRtcNetwork implements IMediaNetwork 
         return false;
     }
     /** Allows to check if a specific peer has a remote
-     * video track attached. 
-     * 
-     * @param id 
+     * video track attached.
+     *
+     * @param id
      */
     public HasVideoTrack(id: ConnectionId): boolean {
         let peer = this.IdToConnection[id.id] as MediaPeer;
@@ -372,7 +378,7 @@ export class BrowserMediaNetwork extends WebRtcNetwork implements IMediaNetwork 
         }
         return false;
     }
-    /**Returns true if no local audio available or it is muted. 
+    /**Returns true if no local audio available or it is muted.
      * False if audio is available (could still not work due to 0 volume, hardware
      * volume control or a dummy audio input device is being used)
      */
@@ -392,8 +398,8 @@ export class BrowserMediaNetwork extends WebRtcNetwork implements IMediaNetwork 
     }
 
     /**Sets the local audio device to mute / unmute it.
-     * 
-     * @param value 
+     *
+     * @param value
      */
     public SetMute(value: boolean){
         if(this.mLocalStream != null && this.mLocalStream.Stream != null)
@@ -434,7 +440,7 @@ export class BrowserMediaNetwork extends WebRtcNetwork implements IMediaNetwork 
             SLog.L("local buffer disposed");
         }
     }
-    
+
     private static BuildSignalingConfig(signalingUrl: string): SignalingConfig {
 
         let signalingNetwork: IBasicNetwork;
