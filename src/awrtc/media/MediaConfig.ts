@@ -30,25 +30,28 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /// <summary>
 /// Configuration for the WebRtcCall class.
-/// 
+///
 /// Allows to turn on / off video and audio + configure the used servers to initialize the connection and
 /// avoid firewalls.
 /// </summary>
 export class MediaConfig {
-    private mAudio: boolean = true;
-    public get Audio(): boolean {
+    private mAudio: boolean | { [key: string]: any } = true;
+    public get Audio(): boolean | { [key: string]: any } {
         return this.mAudio;
     }
-    public set Audio(value: boolean) {
+    public set Audio(value: boolean | { [key: string]: any }) {
         this.mAudio = value;
     }
 
-    private mVideo: boolean = true;
-    public get Video(): boolean {
+    private mVideo: boolean | { [key: string]: any } = true;
+    public get Video(): boolean | { [key: string]: any } {
         return this.mVideo;
     }
-    public set Video(value: boolean) {
+    public set Video(value: boolean | { [key: string]: any }) {
         this.mVideo = value;
+    }
+    public get VideoHasConstraints(): boolean {
+        return typeof this.mVideo === "object" && this.mVideo.constructor === Object;
     }
 
     private mVideoDeviceId : string = "";
@@ -58,7 +61,7 @@ export class MediaConfig {
     public set VideoDeviceId(value: string) {
         this.mVideoDeviceId = value;
     }
-    
+
 
     private mVideoDeviceName : string = "";
     public get VideoDeviceName(): string {
@@ -115,7 +118,7 @@ export class MediaConfig {
         this.mIdealHeight = value;
     }
 
-    
+
     private mMinFps = -1;
     public get MinFps(): number {
         return this.mMinFps;
@@ -123,7 +126,7 @@ export class MediaConfig {
     public set MinFps(value: number) {
         this.mMinFps = value;
     }
-    
+
     private mMaxFps = -1;
     public get MaxFps(): number {
         return this.mMaxFps;
@@ -131,7 +134,7 @@ export class MediaConfig {
     public set MaxFps(value: number) {
         this.mMaxFps = value;
     }
-    
+
     private mIdealFps = -1;
     public get IdealFps(): number {
         return this.mIdealFps;
