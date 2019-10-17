@@ -212,6 +212,17 @@ export class BrowserMediaNetwork extends WebRtcNetwork implements IMediaNetwork 
                     //unlike native version this one will happily play the local sound causing an echo
                     //set to mute
                     this.mLocalStream.SetMute(true);
+
+                    // if we're setting up new stream to already running connection,
+                    // we have to add the stream to existing peers and re-send the offer
+                    for (const connectioId in this.IdToConnection) {
+                        const peer = this.IdToConnection[connectioId] as MediaPeer;
+                        if (peer !== null) {
+                            peer.AddLocalStream(stream);
+                            peer.CreateOffer();
+                        }
+                    }
+
                     this.OnConfigurationSuccess();
 
                 });

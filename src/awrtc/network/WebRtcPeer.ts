@@ -182,11 +182,10 @@ export abstract class AWebRtcPeer {
 
     public Update(): void {
 
-        if (this.mState != WebRtcPeerState.Closed && this.mState != WebRtcPeerState.Closing && this.mState != WebRtcPeerState.SignalingFailed)
+        if (this.mState != WebRtcPeerState.Closed && this.mState != WebRtcPeerState.Closing && this.mState != WebRtcPeerState.SignalingFailed) {
             this.UpdateState();
-
-        if (this.mState == WebRtcPeerState.Signaling || this.mState == WebRtcPeerState.Created)
             this.HandleIncomingSignaling();
+        }
     }
 
     private UpdateState(): void {
@@ -312,7 +311,7 @@ export abstract class AWebRtcPeer {
         this.EnqueueOutgoing("" + nb);
     }
 
-    private CreateOffer(): void {
+    public CreateOffer(): void {
         Debug.Log("CreateOffer");
 
         
