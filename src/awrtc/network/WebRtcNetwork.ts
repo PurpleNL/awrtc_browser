@@ -205,10 +205,11 @@ export class WebRtcNetwork implements IBasicNetwork {
                 this.mSignalingNetwork.SendData(new ConnectionId(+key), buffer, true);
             }
 
-            if (peer.GetState() == WebRtcPeerState.Connected) {
+            // ignore peers in connected state which have been already added
+            if (peer.GetState() == WebRtcPeerState.Connected && !this.mIdToConnection[peer.ConnectionId.id]) {
                 connected.push(peer.SignalingInfo.ConnectionId);
             }
-            else if (peer.GetState() == WebRtcPeerState.SignalingFailed || timeAlive > this.mTimeout) {
+            else if (peer.GetState() == WebRtcPeerState.SignalingFailed) {
                 failed.push(peer.SignalingInfo.ConnectionId);
             }
         }
@@ -336,9 +337,6 @@ export class WebRtcNetwork implements IBasicNetwork {
     
     private ConnectionEstablished(signalingConId: ConnectionId): void {
         let peer = this.mInSignaling[signalingConId.id];
-
-        delete this.mInSignaling[signalingConId.id];
-        this.mSignalingNetwork.Disconnect(signalingConId);
 
         this.mConnectionIds.push(peer.ConnectionId);
         this.mIdToConnection[peer.ConnectionId.id] = peer;
